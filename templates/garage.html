@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Мой гараж — AutoKards{% endblock %}
+{% block content %}
+
+    <h1 class="logo"><a href="/">AutoKards</a></h1>
+
+    <div class="garage-header">
+        <h2>Мой гараж</h2>
+        <div class="balance-pill">💰 {{ balance }} монет</div>
+        <a href="/shop" class="btn btn-primary btn-small">🛒 В магазин</a>
+        <a href="/compare" class="btn btn-secondary btn-small">⚖️ Сравнить</a>
+        <a href="/journal" class="btn btn-secondary btn-small">📜 Журнал</a>
+    </div>
+
+    <div class="filter-bar">
+        <a href="/garage?filter=all" class="filter-chip {% if filter == 'all' %}active{% endif %}">🚗 Все ({{ total_count }})</a>
+        <a href="/garage?filter=fav" class="filter-chip {% if filter == 'fav' %}active{% endif %}">⭐ Избранные ({{ fav_ids|length }})</a>
+    </div>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}{% for msg in messages %}<div class="flash">{{ msg }}</div>{% endfor %}{% endif %}
+    {% endwith %}
+
+    {% if cars %}
+        <div class="cars-grid">
+            {% for car in cars %}
+                {% set car_id, model, rating, price = car %}
+                {% set refund = (price * 0.7) | int %}
+                {% set is_fav = car_id in fav_ids %}
+                <div class="car-card">
+                    <form method="POST" action="/garage/favorite/{{ car_id }}" class="fav-form">
+                        <button type="submit" class="fav-btn {% if is_fav %}active{% endif %}"
+                                title="{% if is_fav %}Убрать из избранного{% else %}Добавить в избранное{% endif %}">
+                            {% if is_fav %}⭐{% else %}☆{% endif %}
+                        </button>
+                    </form>
+                    <form method="POST" action="/garage/remove/{{ car_id }}" class="delete-form"
+                          onsubmit="return confirm('Продать «{{ model }}» за {{ refund }} монет?');">
+                        <button type="submit" class="delete-btn" title="Продать за {{ refund }}">💰</button>
+                    </form>
+                    <a href="/car/{{ car_id }}" class="car-image-link">
+                        <div class="car-image">
+                            <img src="/car_image/{{ car_id }}" alt="{{ model }}" loading="lazy">
+                        </div>
+                    </a>
+                    <div class="car-info">
+                        <div class="car-model"><a href="/car/{{ car_id }}">{{ model }}</a></div>
+                        <div class="car-stars">
+                            {% for i in range(1, 9) %}
+                                <span class="star {% if i <= rating %}filled{% endif %}">★</span>
+                            {% endfor %}
+                        </div>
+                        <div class="car-refund">💰 Продать за {{ refund }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="description">
+            {% if filter == 'fav' %}В избранном пока нет машин.{% else %}В твоём гараже пока пусто.{% endif %}<br>
+            {% if filter == 'fav' %}Отмечай машины звёздочкой ⭐, чтобы они появились здесь.{% else %}Загляни в <a href="/shop" style="color:var(--accent);font-weight:700;">магазин</a>!{% endif %}
+        </p>
+    {% endif %}
+
+    <p class="form-link" style="margin-top: 30px;"><a href="/">← На главную</a></p>
+
+    <style>
+        .garage-header {
+            display: flex; align-items: center; gap: 18px;
+            margin-bottom: 18px; flex-wrap: wrap; justify-content: center;
+        }
+        .garage-header h2 {
+            font-size: 36px; color: var(--accent);
+            text-shadow: var(--neon);
+        }
+        .balance-pill {
+            font-size: 17px; font-weight: 700; color: var(--text-secondary);
+            background: var(--card-bg); padding: 10px 22px; border-radius: 30px;
+            border: 2px solid var(--border);
+        }
+        [data-theme="dark"] .balance-pill { box-shadow: 0 0 15px rgba(255,140,26,0.15); }
+        .btn-small { padding: 10px 22px; font-size: 15px; }
+
+        .filter-bar {
+            display: flex; gap: 10px; flex-wrap: wrap;
+            justify-content: center; margin-bottom: 22px;
+        }
+        .filter-chip {
+            padding: 10px 20px; border-radius: 30px;
+            background: var(--card-bg-solid); color: var(--text-secondary);
+            text-decoration: none; font-weight: 700; font-size: 14px;
+            border: 2px solid var(--border);
+            transition: all 0.2s ease;
+        }
+        .filter-chip:hover { background: var(--bg-gradient-2); border-color: var(--accent); }
+        .filter-chip.active {
+            background: var(--accent); color: #fff; border-color: var(--accent);
+            box-shadow: 0 4px 12px var(--shadow-strong);
+        }
+        [data-theme="dark"] .filter-chip.active { box-shadow: var(--neon); }
+
+        .cars-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 25px; width: 100%; max-width: 1100px; margin-bottom: 30px;
+        }
+        .car-card {
+            position: relative;
+            background: var(--card-bg);
+            border: 2px solid var(--border); border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px var(--shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        [data-theme="dark"] .car-card { box-shadow: 0 6px 20px rgba(0,0,0,0.4), 0 0 15px rgba(255,140,26,0.1); }
+        .car-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px var(--shadow-strong);
+            border-color: var(--accent);
+        }
+        [data-theme="dark"] .car-card:hover { box-shadow: var(--neon); }
+
+        .car-image-link { text-decoration: none; display: block; }
+        .car-image {
+            background: linear-gradient(135deg, var(--bg-gradient-1) 0%, var(--bg-gradient-2) 100%);
+            height: 150px; display: flex; align-items: center;
+            justify-content: center; padding: 12px;
+        }
+        .car-image img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .car-info { padding: 15px 18px 20px; text-align: center; }
+        .car-model { font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 8px; }
+        .car-model a { color: inherit; text-decoration: none; transition: color 0.2s; }
+        .car-model a:hover { color: var(--accent); }
+
+        .car-stars { font-size: 17px; letter-spacing: 1px; color: var(--border); margin-bottom: 10px; }
+        .car-stars .star.filled { color: var(--accent); text-shadow: 0 0 5px rgba(255, 140, 26, 0.5); }
+
+        .car-refund {
+            font-size: 14px; font-weight: 700; color: var(--success);
+            background: var(--success-bg); padding: 6px 14px;
+            border-radius: 20px; display: inline-block;
+        }
+        [data-theme="dark"] .car-refund { box-shadow: 0 0 10px rgba(129,199,132,0.2); }
+
+        .fav-form { position: absolute; top: 8px; left: 8px; z-index: 2; margin: 0; }
+        .fav-btn {
+            width: 34px; height: 34px; border-radius: 50%;
+            border: none; background: var(--white-glass);
+            font-size: 18px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s ease; font-family: inherit; line-height: 1;
+            color: var(--border);
+        }
+        .fav-btn.active { color: var(--accent); }
+        .fav-btn:hover { transform: scale(1.15); background: var(--card-bg-solid); box-shadow: var(--neon); }
+
+        .delete-form { position: absolute; top: 8px; right: 8px; z-index: 2; margin: 0; }
+        .delete-btn {
+            width: 34px; height: 34px; border-radius: 50%;
+            border: none; background: var(--white-glass);
+            font-size: 16px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            transition: all 0.2s ease; font-family: inherit; line-height: 1;
+        }
+        .delete-btn:hover { background: var(--card-bg-solid); transform: scale(1.12); box-shadow: var(--neon); }
+    </style>
+
+{% endblock %}
