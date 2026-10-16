@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+.res-wrap { max-width: 720px; margin: 0 auto; padding: 20px 16px 60px; }
+
+.res-banner {
+    text-align: center; padding: 28px 20px; border-radius: 20px;
+    margin-bottom: 22px; position: relative; overflow: hidden;
+    animation: pop 0.5s ease-out;
+}
+.res-banner.win {
+    background: linear-gradient(135deg, rgba(76,175,80,0.18), rgba(255,179,71,0.12));
+    border: 2px solid rgba(76,175,80,0.6);
+    box-shadow: 0 0 40px rgba(76,175,80,0.35), inset 0 0 30px rgba(76,175,80,0.08);
+}
+.res-banner.lose {
+    background: linear-gradient(135deg, rgba(255,77,77,0.15), rgba(120,0,0,0.1));
+    border: 2px solid rgba(255,77,77,0.5);
+    box-shadow: 0 0 40px rgba(255,77,77,0.25), inset 0 0 30px rgba(255,77,77,0.06);
+}
+.res-emoji { font-size: 60px; line-height: 1; margin-bottom: 8px; }
+.res-title {
+    font-size: 34px; font-weight: 900; letter-spacing: 2px; margin-bottom: 6px;
+}
+.res-banner.win .res-title { color: #4caf50; text-shadow: 0 0 20px rgba(76,175,80,0.6); }
+.res-banner.lose .res-title { color: #ff4d4d; text-shadow: 0 0 20px rgba(255,77,77,0.5); }
+.res-sub { color: #bbb; font-size: 14px; }
+
+@keyframes pop {
