@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% block title %}AutoKards — главная{% endblock %}
+{% block content %}
+
+    <h1 class="logo"><a href="/">AutoKards</a></h1>
+
+    {% if user %}
+        <div class="profile-main">
+            <div class="profile-avatar-wrap">
+                {% if profile and profile.avatar_data %}
+                    <img class="profile-avatar" src="/avatar/{{ profile.id }}" alt="{{ user }}">
+                {% else %}
+                    <div class="profile-avatar profile-avatar-placeholder">{{ user[0]|upper }}</div>
+                {% endif %}
+            </div>
+            <div class="profile-name">{{ user }}</div>
+
+            {# ===== ПОЛОСКА УРОВНЯ ===== #}
+            <div class="level-widget">
+                <div class="level-row">
+                    <span class="level-badge">Ур. {{ level_info.level }}</span>
+                    <div class="level-bar">
+                        <div class="level-fill" style="width: {{ level_info.progress }}%;"></div>
+                    </div>
+                    <span class="level-xp">{{ level_info.xp }}/{{ level_info.xp_needed }} XP</span>
+                </div>
+            </div>
+
+            <div class="profile-stats">
+                <span class="stat-pill">💰 {{ profile.balance }} монет</span>
+                <span class="stat-pill">🚗 {{ cars_count }} машин</span>
+                <span class="stat-pill">🏆 {{ achievements_count }} достиж.</span>
+                <span class="stat-pill">👥 {{ friends_count }} друзей</span>
+            </div>
+
+            <div class="bonus-row">
+                {% if bonus_ready %}
+                    <form method="POST" action="/bonus" class="bonus-form">
+                        <button type="submit" class="btn btn-primary bonus-btn">
+                            🎁 Бонус (+{{ next_bonus }}){% if streak > 1 %} · серия {{ streak }}{% endif %}
+                        </button>
+                    </form>
+                {% else %}
+                    <div class="bonus-wait">
+                        🔥 Серия: <strong>{{ streak }}</strong> · След. бонус: <strong>{{ next_bonus }} 💰</strong>
+                        · через <strong>{{ bonus_left }}</strong>
+                    </div>
+                {% endif %}
+
+                <a href="/wheel" class="btn btn-primary wheel-link">🎡 Колесо</a>
+            </div>
+
+            {% if profile and profile.bio %}
+                <div class="profile-bio">{{ profile.bio }}</div>
+            {% else %}
+                <div class="profile-bio profile-bio-empty">Описание пока не заполнено</div>
+            {% endif %}
+
+            {% if favorite_car %}
+                <div class="profile-fav">
+                    <div class="profile-fav-label">❤ Любимая машина</div>
+                    <div class="profile-fav-card">
+                        <img src="/car_image/{{ favorite_car[0] }}" alt="{{ favorite_car[1] }}">
+                        <div class="profile-fav-name">{{ favorite_car[1] }}</div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="profile-actions">
+                <a href="/settings" class="btn btn-primary">⚙ Профиль</a>
+                <a href="/profile/{{ user }}" class="btn btn-secondary">👤 Мой профиль</a>
+                <a href="/garage" class="btn btn-primary">🏁 Мой гараж</a>
+                <a href="/shop" class="btn btn-primary">🛒 Магазин</a>
+                <a href="/racing" class="btn btn-primary">🏁 Гонки{% if active_races_count %} ({{ active_races_count }}){% endif %}</a>
+                <a href="/salvage" class="btn btn-primary">🔍 Свалка</a>
+                <a href="/rating" class="btn btn-primary">🏆 Рейтинг</a>
+                <a href="/collections" class="btn btn-primary">📦 Коллекции{% if collections_ready %} ({{ collections_ready }}){% endif %}</a>
+                <a href="/trades" class="btn btn-primary">🔄 Обмены{% if incoming_trades_count %} ({{ incoming_trades_count }}){% endif %}</a>
+                <a href="/quests" class="btn btn-primary">📋 Задания{% if quests_unclaimed %} ({{ quests_unclaimed }}){% endif %}</a>
+                <a href="/friends" class="btn btn-secondary">👥 Друзья{% if incoming_friend_requests %} ({{ incoming_friend_requests }}){% endif %}</a>
+                <a href="/shop/wishlist" class="btn btn-secondary">❤ Желаемое{% if wishlist_count %} ({{ wishlist_count }}){% endif %}</a>
+                <a href="/compare" class="btn btn-secondary">⚖️ Сравнить</a>
+                <a href="/achievements" class="btn btn-secondary">🏆 Достижения</a>
+                <a href="/journal" class="btn btn-secondary">📜 Журнал</a>
+                <a href="/appearance" class="btn btn-secondary">🎨 Вид и звук</a>
+                <a href="/news" class="btn btn-secondary">📰 Новости</a>
+                <a href="/notifications" class="btn btn-secondary">🔔 Уведомления{% if unread_notifications %} ({{ unread_notifications }}){% endif %}</a>
+                {% if is_admin %}
+                    <a href="/admin/settings" class="btn btn-secondary">⚙ Админ</a>
+                {% endif %}
+                <a href="/logout" class="btn btn-secondary">Выйти</a>
+            </div>
+        </div>
+    {% else %}
+        <div class="buttons">
+            <a href="/register" class="btn btn-primary">Регистрация</a>
+            <a href="/login" class="btn btn-secondary">Войти</a>
+        </div>
+        <p class="description">
+            <strong>AutoKards</strong> — это проект, рождённый из искренней любви к автомобилям.
+            Здесь ты сможешь не просто наблюдать, а стать частью мира машин вместе с друзьями.
+            Нажми <strong>«Регистрация»</strong>, если ты здесь впервые, или <strong>«Войти»</strong>,
+            если уже с нами. Добро пожаловать в гараж!
+        </p>
+    {% endif %}
+
+    <style>
+        .profile-main { display: flex; flex-direction: column; align-items: center; margin-bottom: 30px; }
+        .profile-avatar-wrap { margin-bottom: 18px; }
+        .profile-avatar {
+            width: 130px; height: 130px; border-radius: 50%; object-fit: cover;
+            border: 4px solid var(--accent);
+            box-shadow: 0 8px 25px var(--shadow-strong);
+            background: var(--card-bg-solid);
+        }
+        [data-theme="dark"] .profile-avatar { box-shadow: var(--neon-strong); }
+        .profile-avatar-placeholder {
+            display: flex; align-items: center; justify-content: center;
+            font-size: 60px; font-weight: 900; color: #fff;
+            background: linear-gradient(135deg, var(--accent) 0%, #ffb347 100%);
+        }
+        .profile-name {
+            font-size: 34px; font-weight: 900; color: var(--accent);
+            text-shadow: var(--neon);
+            margin-bottom: 10px;
+        }
+
+        .profile-stats { display: flex; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; justify-content: center; }
+        .stat-pill {
+            font-size: 15px; font-weight: 700; color: var(--text-secondary);
+            background: var(--card-bg); padding: 8px 20px; border-radius: 30px;
+            border: 2px solid var(--border);
+            box-shadow: 0 3px 10px var(--shadow);
+        }
+        [data-theme="dark"] .stat-pill { box-shadow: 0 3px 10px rgba(0,0,0,0.4), 0 0 12px rgba(255,140,26,0.15); }
+
+        .bonus-row {
+            display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+            margin-bottom: 18px;
+        }
+        .bonus-form { margin: 0; }
+        .bonus-btn { padding: 14px 26px; font-size: 16px; animation: pulse 2s infinite; }
+        .wheel-link { padding: 14px 26px; font-size: 16px; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+
+        .bonus-wait {
+            font-size: 14px; color: var(--text-secondary);
+            background: var(--card-bg); padding: 12px 20px; border-radius: 30px;
+            border: 1px dashed var(--border);
+        }
+        [data-theme="dark"] .bonus-wait { box-shadow: 0 0 15px rgba(255,140,26,0.15); }
+        .bonus-wait strong { color: var(--accent); }
+
+        .profile-bio {
+            max-width: 550px; font-size: 17px; line-height: 1.6;
+            color: var(--text-main);
+            background: var(--card-bg); padding: 16px 24px;
+            border-radius: 16px; border: 1px solid var(--border);
+            margin-bottom: 22px; text-align: center;
+        }
+        [data-theme="dark"] .profile-bio { box-shadow: 0 0 15px rgba(255,140,26,0.1); }
+        .profile-bio-empty { color: var(--text-hint); font-style: italic; }
+
+        .profile-fav { margin-bottom: 25px; text-align: center; }
+        .profile-fav-label {
+            font-size: 14px; font-weight: 700; color: var(--accent);
+            letter-spacing: 1px; margin-bottom: 10px; text-transform: uppercase;
+            text-shadow: var(--neon);
+        }
+        .profile-fav-card {
+            display: inline-flex; align-items: center; gap: 14px;
+            background: var(--card-bg); border: 2px solid var(--border);
+            border-radius: 16px; padding: 12px 22px 12px 12px;
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+        [data-theme="dark"] .profile-fav-card { box-shadow: 0 4px 15px rgba(0,0,0,0.4), 0 0 20px rgba(255,140,26,0.2); }
+        .profile-fav-card img { width: 90px; height: 60px; object-fit: contain; }
+        .profile-fav-name { font-size: 18px; font-weight: 700; color: var(--text-main); }
+
+        .profile-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; max-width: 900px; }
+        .profile-actions .btn { padding: 11px 20px; font-size: 14px; }
+
+        /* ===== ПОЛОСКА УРОВНЯ ===== */
+        .level-widget { width: 100%; max-width: 500px; margin-bottom: 16px; }
+        .level-row {
+            display: flex; align-items: center; gap: 10px;
+            background: var(--card-bg);
+            padding: 10px 16px; border-radius: 30px;
+            border: 2px solid var(--border);
+            box-shadow: 0 4px 15px var(--shadow);
+        }
+        [data-theme="dark"] .level-row { box-shadow: 0 4px 15px rgba(0,0,0,0.4), 0 0 15px rgba(255,140,26,0.15); }
+        .level-badge {
+            font-size: 14px; font-weight: 900; color: #fff;
+            background: linear-gradient(135deg, var(--accent) 0%, #ffb347 100%);
+            padding: 6px 14px; border-radius: 20px;
+            white-space: nowrap;
+        }
+        [data-theme="dark"] .level-badge { box-shadow: var(--neon); }
+        .level-bar {
+            flex: 1; height: 12px; background: var(--bg-gradient-1);
+            border-radius: 10px; overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .level-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #ffb347);
+            transition: width 0.5s;
+        }
+        [data-theme="dark"] .level-fill {
+            box-shadow: 0 0 10px rgba(255, 140, 26, 0.8), 0 0 20px rgba(255, 140, 26, 0.5);
+        }
+        .level-xp {
+            font-size: 12px; font-weight: 700; color: var(--text-secondary);
+            white-space: nowrap;
+        }
+    </style>
+
+{% endblock %}
